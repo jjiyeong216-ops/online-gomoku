@@ -26,10 +26,11 @@ function cleanNickname(nickname) {
 }
 
 export class RoomManager {
-  constructor({ codeGenerator = randomCode } = {}) {
+  constructor({ codeGenerator = randomCode, random = Math.random } = {}) {
     this.rooms = new Map();
     this.socketRooms = new Map();
     this.codeGenerator = codeGenerator;
+    this.random = random;
   }
 
   hasRoom(code) {
@@ -49,7 +50,7 @@ export class RoomManager {
       currentPlayer: BLACK,
       winner: null,
       lastMove: null,
-      players: [{ socketId, nickname: cleanNickname(nickname), color: BLACK }],
+      players: [{ socketId, nickname: cleanNickname(nickname), color: null }],
     };
     this.rooms.set(code, room);
     this.socketRooms.set(socketId, code);
@@ -62,7 +63,10 @@ export class RoomManager {
     const room = this.rooms.get(normalizedCode);
     if (!room) fail('ROOM_NOT_FOUND');
     if (room.players.length >= 2) fail('ROOM_FULL');
-    room.players.push({ socketId, nickname: cleanNickname(nickname), color: WHITE });
+    room.players.push({ socketId, nickname: cleanNickname(nickname), color: null });
+    const hostIsBlack = this.random() < 0.5;
+    room.players[0].color = hostIsBlack ? BLACK : WHITE;
+    room.players[1].color = hostIsBlack ? WHITE : BLACK;
     room.status = 'playing';
     this.socketRooms.set(socketId, normalizedCode);
     return this.snapshot(room);
@@ -114,6 +118,19 @@ export class RoomManager {
     const room = code && this.rooms.get(code);
     if (!room) fail('ROOM_NOT_FOUND');
     return room;
+  }
+
+  socketIdsForSocket(socketId) {
+    return this.roomForSocket(socketId).players.map((player) => player.socketId);
+  }
+
+  stateForSocket(socketId) {
+    const room = this.roomForSocket(socketId);
+    const player = room.players.find((item) => item.socketId === socketId);
+    return {
+      state: this.snapshot(room),
+      you: { nickname: player.nickname, color: player.color },
+    };
   }
 
   snapshot(room) {

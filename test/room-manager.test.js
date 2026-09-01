@@ -4,8 +4,8 @@ import test from 'node:test';
 import { BLACK, WHITE } from '../server/game-rules.js';
 import { RoomManager } from '../server/room-manager.js';
 
-function manager() {
-  return new RoomManager({ codeGenerator: () => 'ABC123' });
+function manager(random = () => 0) {
+  return new RoomManager({ codeGenerator: () => 'ABC123', random });
 }
 
 test('creates a waiting room with a normalized host', () => {
@@ -13,7 +13,7 @@ test('creates a waiting room with a normalized host', () => {
   const state = rooms.createRoom({ socketId: 'host', nickname: '  방장  ', rule: 'freestyle' });
   assert.equal(state.code, 'ABC123');
   assert.equal(state.status, 'waiting');
-  assert.deepEqual(state.players, [{ nickname: '방장', color: BLACK }]);
+  assert.deepEqual(state.players, [{ nickname: '방장', color: null }]);
 });
 
 test('joins a guest as white and starts the game', () => {
@@ -22,6 +22,17 @@ test('joins a guest as white and starts the game', () => {
   const state = rooms.joinRoom({ socketId: 'guest', nickname: '손님', code: 'abc123' });
   assert.equal(state.status, 'playing');
   assert.deepEqual(state.players.map((player) => player.color), [BLACK, WHITE]);
+  assert.equal(state.currentPlayer, BLACK);
+});
+
+test('randomly assigns the guest as black when the draw flips', () => {
+  const rooms = manager(() => 0.9);
+  rooms.createRoom({ socketId: 'host', nickname: '방장', rule: 'freestyle' });
+  const state = rooms.joinRoom({ socketId: 'guest', nickname: '손님', code: 'ABC123' });
+  assert.deepEqual(state.players, [
+    { nickname: '방장', color: WHITE },
+    { nickname: '손님', color: BLACK },
+  ]);
   assert.equal(state.currentPlayer, BLACK);
 });
 
