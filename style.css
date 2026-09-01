@@ -23,12 +23,137 @@ body {
 }
 
 .app {
-  width: min(92vw, 760px);
+  width: min(94vw, 900px);
   background: rgba(255, 255, 255, 0.2);
   border: 3px solid rgba(92, 55, 20, 0.45);
   border-radius: 20px;
   box-shadow: 0 18px 45px var(--shadow);
   padding: 24px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.connection-pill,
+.rule-pill {
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: rgba(92, 55, 20, 0.12);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.connection-pill.connected {
+  color: #176b3a;
+  background: rgba(35, 145, 81, 0.12);
+}
+
+.intro h2 {
+  margin: 0 0 8px;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
+.intro p,
+.action-card p {
+  margin: 0;
+  color: rgba(45, 31, 16, 0.68);
+  line-height: 1.55;
+}
+
+.nickname-field {
+  max-width: 420px;
+  margin: 24px 0 18px;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+  font-weight: 800;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  border: 1px solid rgba(92, 55, 20, 0.35);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.64);
+  color: inherit;
+  font: inherit;
+  padding: 12px 13px;
+}
+
+.lobby-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.action-card {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+  border: 1px solid rgba(92, 55, 20, 0.22);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.action-card h3 { margin: 0; font-size: 1.25rem; }
+.card-number { font-size: 0.75rem; font-weight: 900; letter-spacing: 0.15em; opacity: 0.55; }
+
+.primary-button,
+.secondary-button,
+.small-button,
+.text-button {
+  border: none;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 12px 16px;
+}
+
+.primary-button { background: #2d1f10; color: white; }
+.secondary-button { background: #b16a24; color: white; }
+.small-button { padding: 8px 11px; background: rgba(45, 31, 16, 0.12); }
+.text-button { margin-left: auto; padding: 8px 10px; background: transparent; color: #74411b; }
+button:disabled { cursor: not-allowed; }
+
+.message {
+  min-height: 1.4em;
+  margin: 14px 0 0;
+  color: #a33b25;
+  font-weight: 800;
+}
+
+.room-bar,
+.players {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.meta-label { display: block; font-size: 0.72rem; font-weight: 800; opacity: 0.62; }
+.room-code { font-size: 1.35rem; letter-spacing: 0.12em; }
+.players { display: grid; grid-template-columns: 1fr 1fr; }
+.player-card { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border-radius: 11px; background: rgba(255,255,255,.3); font-weight: 800; }
+.stone-sample { width: 22px; height: 22px; border-radius: 50%; }
+.stone-sample.black { background: #111; }
+.stone-sample.white { background: #f7f7f7; border: 1px solid #aaa; }
+
+.cell.last-move::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18%;
+  height: 18%;
+  border-radius: 50%;
+  background: #d84b35;
+  transform: translate(-50%, -50%);
 }
 
 .header {
@@ -188,5 +313,10 @@ h1 {
 
   .reset-button {
     width: 100%;
+  }
+
+  .lobby-actions,
+  .players {
+    grid-template-columns: 1fr;
   }
 }

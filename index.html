@@ -3,33 +3,53 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>2인용 오목</title>
+    <title>온라인 오목</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="app">
+    <main class="app">
       <header class="header">
-        <div>
-          <p class="label">오목 게임</p>
-          <h1>2인용 오목</h1>
-        </div>
-        <button id="resetButton" class="reset-button">다시 시작</button>
+        <div><p class="label">ONLINE GOMOKU</p><h1>온라인 1:1 오목</h1></div>
+        <span id="connectionDisplay" class="connection-pill">서버 연결 중</span>
       </header>
 
-      <div class="status-bar">
-        <div class="turn-wrap">
-          <span class="turn-label">현재 턴</span>
-          <span id="turnDisplay" class="turn-display black">검은색</span>
+      <section id="lobbyView" class="lobby" aria-labelledby="lobbyTitle">
+        <div class="intro">
+          <h2 id="lobbyTitle">친구와 바로 대국하세요</h2>
+          <p>닉네임을 정한 뒤 방을 만들거나, 공유받은 6자리 코드로 참여하세요.</p>
         </div>
-        <div class="record-wrap">
-          <span class="record-label">기록</span>
-          <span id="recordDisplay" class="record-display">검은색 0 - 0 흰색</span>
+        <label class="field nickname-field"><span>닉네임</span><input id="nicknameInput" maxlength="12" autocomplete="nickname" placeholder="최대 12자" /></label>
+        <div class="lobby-actions">
+          <article class="action-card">
+            <span class="card-number">01</span><h3>새 방 만들기</h3><p>룰을 선택하고 참여 코드를 발급받으세요.</p>
+            <label class="field"><span>게임 룰</span><select id="ruleSelect"><option value="freestyle">자유룰 · 5개 이상</option><option value="renju">렌주룰 · 흑 금수 적용</option></select></label>
+            <button id="createRoomButton" class="primary-button" type="button">방 만들기</button>
+          </article>
+          <article class="action-card">
+            <span class="card-number">02</span><h3>코드로 참여하기</h3><p>친구에게 받은 참여 코드를 입력하세요.</p>
+            <label class="field"><span>참여 코드</span><input id="roomCodeInput" maxlength="6" autocomplete="off" placeholder="ABC123" /></label>
+            <button id="joinRoomButton" class="secondary-button" type="button">방 참여하기</button>
+          </article>
         </div>
-      </div>
+        <p id="lobbyMessage" class="message" role="alert" aria-live="polite"></p>
+      </section>
 
-      <div id="board" class="board" aria-label="오목 보드"></div>
-    </div>
-
+      <section id="gameView" class="game-view" hidden>
+        <div class="room-bar">
+          <div><span class="meta-label">참여 코드</span><strong id="roomCodeDisplay" class="room-code">------</strong></div>
+          <button id="copyCodeButton" class="small-button" type="button">코드 복사</button>
+          <span id="ruleDisplay" class="rule-pill">자유룰</span>
+          <button id="leaveButton" class="text-button" type="button">나가기</button>
+        </div>
+        <div class="players">
+          <div id="blackPlayer" class="player-card"><span class="stone-sample black"></span><span>흑 · 배정 대기</span></div>
+          <div id="whitePlayer" class="player-card"><span class="stone-sample white"></span><span>백 · 배정 대기</span></div>
+        </div>
+        <div class="status-bar"><span class="turn-label">대국 상태</span><strong id="turnDisplay" class="turn-display">상대방을 기다리는 중입니다</strong></div>
+        <div id="board" class="board" aria-label="오목 보드"></div>
+        <p id="gameMessage" class="message" role="status" aria-live="polite"></p>
+      </section>
+    </main>
     <script src="script.js"></script>
   </body>
 </html>

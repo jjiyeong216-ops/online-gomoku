@@ -2,6 +2,7 @@ import { createReadStream } from 'node:fs';
 import { createServer } from 'node:http';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { attachSocketServer } from './socket-handler.js';
 
 export const DEFAULT_PORT = 2020;
 
@@ -14,7 +15,7 @@ const staticFiles = new Map([
 ]);
 
 export function createAppServer() {
-  return createServer((request, response) => {
+  const server = createServer((request, response) => {
     const pathname = new URL(request.url, 'http://localhost').pathname;
     const staticFile = staticFiles.get(pathname);
 
@@ -28,6 +29,8 @@ export function createAppServer() {
     response.writeHead(200, { 'content-type': contentType });
     createReadStream(join(projectRoot, fileName)).pipe(response);
   });
+  attachSocketServer(server);
+  return server;
 }
 
 const isDirectRun = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];

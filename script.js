@@ -1,151 +1,107 @@
 const BOARD_SIZE = 15;
-const EMPTY = 0;
 const BLACK = 1;
 const WHITE = 2;
-
-const boardElement = document.getElementById('board');
-const turnDisplay = document.getElementById('turnDisplay');
-const recordDisplay = document.getElementById('recordDisplay');
-const resetButton = document.getElementById('resetButton');
-
-const board = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(EMPTY));
-let currentPlayer = BLACK;
-let gameOver = false;
-let blackWins = 0;
-let whiteWins = 0;
+const byId = (id) => document.getElementById(id);
+const elements = {
+  lobbyView: byId('lobbyView'), gameView: byId('gameView'), nickname: byId('nicknameInput'),
+  rule: byId('ruleSelect'), codeInput: byId('roomCodeInput'), create: byId('createRoomButton'),
+  join: byId('joinRoomButton'), lobbyMessage: byId('lobbyMessage'), gameMessage: byId('gameMessage'),
+  connection: byId('connectionDisplay'), codeDisplay: byId('roomCodeDisplay'), copy: byId('copyCodeButton'),
+  leave: byId('leaveButton'), ruleDisplay: byId('ruleDisplay'), turn: byId('turnDisplay'),
+  blackPlayer: byId('blackPlayer'), whitePlayer: byId('whitePlayer'), board: byId('board'),
+};
+let socket;
+let gameState = null;
+let me = null;
 
 function createBoard() {
-  boardElement.innerHTML = '';
-
-  for (let row = 0; row < BOARD_SIZE; row += 1) {
-    for (let col = 0; col < BOARD_SIZE; col += 1) {
-      const cell = document.createElement('button');
-      cell.type = 'button';
-      cell.className = 'cell';
-      cell.setAttribute('aria-label', `${row + 1}행 ${col + 1}열`);
-      cell.dataset.row = String(row);
-      cell.dataset.col = String(col);
-      cell.addEventListener('click', () => handleCellClick(row, col));
-      boardElement.appendChild(cell);
-    }
+  const fragment = document.createDocumentFragment();
+  for (let row = 0; row < BOARD_SIZE; row += 1) for (let col = 0; col < BOARD_SIZE; col += 1) {
+    const cell = document.createElement('button');
+    cell.type = 'button'; cell.className = 'cell'; cell.dataset.row = row; cell.dataset.col = col;
+    cell.setAttribute('aria-label', `${row + 1}행 ${col + 1}열`);
+    cell.addEventListener('click', () => placeStone(row, col));
+    fragment.appendChild(cell);
   }
+  elements.board.appendChild(fragment);
 }
 
-function updateTurnDisplay() {
-  turnDisplay.textContent = currentPlayer === BLACK ? '검은색' : '흰색';
-  turnDisplay.classList.toggle('black', currentPlayer === BLACK);
-  turnDisplay.classList.toggle('white', currentPlayer === WHITE);
-}
-
-function updateRecordDisplay() {
-  recordDisplay.textContent = `검은색 ${blackWins} - ${whiteWins} 흰색`;
-}
-
-function resetBoard() {
-  for (let row = 0; row < BOARD_SIZE; row += 1) {
-    for (let col = 0; col < BOARD_SIZE; col += 1) {
-      board[row][col] = EMPTY;
-    }
-  }
-
-  gameOver = false;
-  currentPlayer = BLACK;
-  updateTurnDisplay();
-  renderBoard();
-}
-
-function renderBoard() {
-  const cells = boardElement.querySelectorAll('.cell');
-  cells.forEach((cell) => {
-    const row = Number(cell.dataset.row);
-    const col = Number(cell.dataset.col);
-    const value = board[row][col];
-    cell.classList.remove('black', 'white');
-
-    if (value === BLACK) {
-      cell.classList.add('black');
-    } else if (value === WHITE) {
-      cell.classList.add('white');
-    }
-
-    cell.disabled = gameOver || value !== EMPTY;
+function connect() {
+  socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}`);
+  socket.addEventListener('open', () => {
+    elements.connection.textContent = '서버 연결됨'; elements.connection.classList.add('connected'); setLobbyEnabled(true);
+  });
+  socket.addEventListener('message', ({ data }) => handleMessage(JSON.parse(data)));
+  socket.addEventListener('close', () => {
+    elements.connection.textContent = '서버 연결 끊김'; elements.connection.classList.remove('connected'); setLobbyEnabled(false);
+    if (gameState) showGameMessage('서버 연결이 끊겨 대국이 종료되었습니다.');
   });
 }
 
-function checkWinner(row, col) {
-  const target = board[row][col];
-  const directions = [
-    [1, 0],
-    [0, 1],
-    [1, 1],
-    [1, -1],
-  ];
-
-  for (const [dx, dy] of directions) {
-    let count = 1;
-
-    for (const direction of [-1, 1]) {
-      let nextRow = row + dx * direction;
-      let nextCol = col + dy * direction;
-
-      while (
-        nextRow >= 0 &&
-        nextRow < BOARD_SIZE &&
-        nextCol >= 0 &&
-        nextCol < BOARD_SIZE &&
-        board[nextRow][nextCol] === target
-      ) {
-        count += 1;
-        nextRow += dx * direction;
-        nextCol += dy * direction;
-      }
-    }
-
-    if (count >= 5) {
-      return target;
-    }
-  }
-
-  return null;
+function send(message) {
+  if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
+  else showLobbyMessage('서버에 연결되지 않았습니다.');
 }
 
-function handleCellClick(row, col) {
-  if (gameOver || board[row][col] !== EMPTY) {
-    return;
-  }
-
-  board[row][col] = currentPlayer;
-  renderBoard();
-
-  const winner = checkWinner(row, col);
-  if (winner === BLACK) {
-    blackWins += 1;
-    updateRecordDisplay();
-    turnDisplay.textContent = '검은색 승리!';
-    turnDisplay.classList.remove('white');
-    turnDisplay.classList.add('black');
-    gameOver = true;
-    renderBoard();
-    return;
-  }
-
-  if (winner === WHITE) {
-    whiteWins += 1;
-    updateRecordDisplay();
-    turnDisplay.textContent = '흰색 승리!';
-    turnDisplay.classList.remove('black');
-    turnDisplay.classList.add('white');
-    gameOver = true;
-    renderBoard();
-    return;
-  }
-
-  currentPlayer = currentPlayer === BLACK ? WHITE : BLACK;
-  updateTurnDisplay();
+function getNickname() {
+  const value = elements.nickname.value.trim();
+  if (value) return value;
+  showLobbyMessage('닉네임을 입력해주세요.'); elements.nickname.focus(); return null;
 }
 
-createBoard();
-updateTurnDisplay();
-updateRecordDisplay();
-resetButton.addEventListener('click', resetBoard);
-resetBoard();
+function handleMessage(message) {
+  if (message.type === 'state_changed') {
+    gameState = message.state; me = message.you;
+    elements.lobbyView.hidden = true; elements.gameView.hidden = false; renderGame();
+  } else if (message.type === 'request_rejected') {
+    if (gameState) showGameMessage(message.message); else showLobbyMessage(message.message);
+  } else if (message.type === 'room_closed') {
+    gameState = null; showGameMessage(message.message);
+    elements.board.querySelectorAll('.cell').forEach((cell) => { cell.disabled = true; });
+  }
+}
+
+function renderGame() {
+  elements.codeDisplay.textContent = gameState.code;
+  elements.ruleDisplay.textContent = gameState.rule === 'renju' ? '렌주룰' : '자유룰';
+  const black = gameState.players.find((player) => player.color === BLACK);
+  const white = gameState.players.find((player) => player.color === WHITE);
+  elements.blackPlayer.lastElementChild.textContent = `흑 · ${black?.nickname ?? '배정 대기'}`;
+  elements.whitePlayer.lastElementChild.textContent = `백 · ${white?.nickname ?? '배정 대기'}`;
+  if (gameState.status === 'waiting') elements.turn.textContent = '코드를 공유하고 상대방을 기다려주세요';
+  else if (gameState.status === 'finished') {
+    const winner = gameState.players.find((player) => player.color === gameState.winner);
+    elements.turn.textContent = winner ? `${winner.nickname} 승리!` : '무승부';
+  } else {
+    const current = gameState.players.find((player) => player.color === gameState.currentPlayer);
+    elements.turn.textContent = gameState.currentPlayer === me.color ? `내 차례 (${me.color === BLACK ? '흑' : '백'})` : `${current?.nickname} 차례`;
+  }
+  elements.board.querySelectorAll('.cell').forEach((cell) => {
+    const row = Number(cell.dataset.row); const col = Number(cell.dataset.col); const value = gameState.board[row][col];
+    cell.classList.toggle('black', value === BLACK); cell.classList.toggle('white', value === WHITE);
+    cell.classList.toggle('last-move', gameState.lastMove?.row === row && gameState.lastMove?.col === col);
+    cell.disabled = gameState.status !== 'playing' || gameState.currentPlayer !== me.color || value !== 0;
+  });
+}
+
+function placeStone(row, col) {
+  if (gameState?.status === 'playing' && gameState.currentPlayer === me?.color) send({ type: 'place_stone', row, col });
+}
+function setLobbyEnabled(enabled) { elements.create.disabled = !enabled; elements.join.disabled = !enabled; }
+function showLobbyMessage(message) { elements.lobbyMessage.textContent = message; }
+function showGameMessage(message) { elements.gameMessage.textContent = message; }
+
+elements.create.addEventListener('click', () => {
+  const nickname = getNickname(); if (nickname) send({ type: 'create_room', nickname, rule: elements.rule.value });
+});
+elements.join.addEventListener('click', () => {
+  const nickname = getNickname(); const code = elements.codeInput.value.trim().toUpperCase();
+  if (!nickname) return;
+  if (!/^[A-Z0-9]{6}$/.test(code)) { showLobbyMessage('6자리 참여 코드를 입력해주세요.'); return; }
+  send({ type: 'join_room', nickname, code });
+});
+elements.codeInput.addEventListener('input', () => { elements.codeInput.value = elements.codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6); });
+elements.copy.addEventListener('click', async () => { await navigator.clipboard.writeText(gameState.code); showGameMessage('참여 코드를 복사했습니다.'); });
+elements.leave.addEventListener('click', () => location.reload());
+
+setLobbyEnabled(false); createBoard(); connect();

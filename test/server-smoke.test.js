@@ -19,7 +19,7 @@ test('serves the game page over HTTP', async (t) => {
   const response = await fetch(`http://127.0.0.1:${address.port}/`);
 
   assert.equal(response.status, 200);
-  assert.match(await response.text(), /2인용 오목/);
+  assert.match(await response.text(), /온라인 1:1 오목/);
 });
 
 test('draws stones on line intersections instead of inside boxed cells', async () => {
@@ -29,4 +29,11 @@ test('draws stones on line intersections instead of inside boxed cells', async (
   assert.match(cellRule, /border:\s*none/);
   assert.match(cellRule, /linear-gradient\(\s*to right/);
   assert.match(cellRule, /linear-gradient\(\s*to bottom/);
+});
+
+test('provides nickname, room creation, and code joining controls', async () => {
+  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  for (const id of ['nicknameInput', 'ruleSelect', 'createRoomButton', 'roomCodeInput', 'joinRoomButton', 'roomCodeDisplay']) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
 });
