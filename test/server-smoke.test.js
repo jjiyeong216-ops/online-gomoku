@@ -48,3 +48,10 @@ test('provides two desktop Kakao ad placeholders', async () => {
   assert.match(css, /\.ad-slot\s*\{[\s\S]*width:\s*160px[\s\S]*height:\s*600px/);
   assert.match(css, /@media\s*\(max-width:\s*1299px\)[\s\S]*\.ad-rail\s*\{[\s\S]*display:\s*none/);
 });
+
+test('loads the configured Kakao AdFit unit in the left slot once', async () => {
+  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(html, /id=["']leftAdSlot["'][\s\S]*?data-ad-unit=["']DAN-jpKLsrimtcgIKeCs["']/);
+  assert.match(html, /data-ad-width=["']160["'][\s\S]*?data-ad-height=["']600["']/);
+  assert.equal((html.match(/t1\.kakaocdn\.net\/kas\/static\/ba\.min\.js/g) ?? []).length, 1);
+});
