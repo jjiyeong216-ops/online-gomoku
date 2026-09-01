@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2인용 오목</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div>
+          <p class="label">오목 게임</p>
+          <h1>2인용 오목</h1>
+        </div>
+        <button id="resetButton" class="reset-button">다시 시작</button>
+      </header>
+
+      <div class="status-bar">
+        <div class="turn-wrap">
+          <span class="turn-label">현재 턴</span>
+          <span id="turnDisplay" class="turn-display black">검은색</span>
+        </div>
+        <div class="record-wrap">
+          <span class="record-label">기록</span>
+          <span id="recordDisplay" class="record-display">검은색 0 - 0 흰색</span>
+        </div>
+      </div>
+
+      <div id="board" class="board" aria-label="오목 보드"></div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
