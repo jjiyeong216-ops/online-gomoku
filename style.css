@@ -121,15 +121,29 @@ h1 {
 
 .cell {
   position: relative;
-  border: 1px solid rgba(92, 55, 20, 0.7);
-  background: var(--board);
+  border: none;
+  background:
+    linear-gradient(
+      to right,
+      transparent calc(50% - 0.5px),
+      rgba(92, 55, 20, 0.78) calc(50% - 0.5px),
+      rgba(92, 55, 20, 0.78) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    ),
+    linear-gradient(
+      to bottom,
+      transparent calc(50% - 0.5px),
+      rgba(92, 55, 20, 0.78) calc(50% - 0.5px),
+      rgba(92, 55, 20, 0.78) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    );
   cursor: pointer;
   aspect-ratio: 1;
-  transition: transform 0.08s ease;
+  transition: filter 0.08s ease;
 }
 
 .cell:hover {
-  background: rgba(255, 255, 255, 0.08);
+  filter: brightness(1.08);
 }
 
 .cell:focus-visible {
