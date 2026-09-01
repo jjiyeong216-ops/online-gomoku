@@ -55,3 +55,10 @@ test('loads the configured Kakao AdFit unit in the left slot once', async () => 
   assert.match(html, /data-ad-width=["']160["'][\s\S]*?data-ad-height=["']600["']/);
   assert.equal((html.match(/t1\.kakaocdn\.net\/kas\/static\/ba\.min\.js/g) ?? []).length, 1);
 });
+
+test('loads the configured Kakao AdFit unit in the right slot', async () => {
+  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(html, /id=["']rightAdSlot["'][\s\S]*?data-ad-unit=["']DAN-yvPe5WiyxHTtmgHH["']/);
+  assert.match(html, /data-ad-unit=["']DAN-yvPe5WiyxHTtmgHH["'][\s\S]*?data-ad-width=["']160["'][\s\S]*?data-ad-height=["']600["']/);
+  assert.equal((html.match(/t1\.kakaocdn\.net\/kas\/static\/ba\.min\.js/g) ?? []).length, 1);
+});
