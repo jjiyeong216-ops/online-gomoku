@@ -22,6 +22,45 @@ body {
   color: #2d1f10;
 }
 
+.page-shell {
+  width: min(98vw, 1268px);
+  display: grid;
+  grid-template-columns: 160px minmax(0, 900px) 160px;
+  align-items: start;
+  gap: 24px;
+}
+
+.ad-rail {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.ad-slot {
+  width: 160px;
+  height: 600px;
+  display: grid;
+  place-content: center;
+  gap: 7px;
+  border: 1px dashed rgba(92, 55, 20, 0.28);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(45, 31, 16, 0.42);
+  text-align: center;
+}
+
+.ad-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.ad-slot strong {
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
 .app {
   width: min(94vw, 900px);
   background: rgba(255, 255, 255, 0.2);
@@ -335,5 +374,16 @@ h1 {
   .lobby-actions,
   .players {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1299px) {
+  .page-shell {
+    width: min(94vw, 900px);
+    display: block;
+  }
+
+  .ad-rail {
+    display: none;
   }
 }

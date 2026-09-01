@@ -7,7 +7,15 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <main class="app">
+    <div class="page-shell">
+      <aside class="ad-rail" aria-label="왼쪽 광고">
+        <div id="leftAdSlot" class="ad-slot">
+          <span class="ad-label">ADVERTISEMENT</span>
+          <strong>160 × 600</strong>
+        </div>
+      </aside>
+
+      <main class="app">
       <header class="header">
         <div><p class="label">ONLINE GOMOKU</p><h1>온라인 1:1 오목</h1></div>
         <span id="connectionDisplay" class="connection-pill">서버 연결 중</span>
@@ -52,7 +60,15 @@
         <div id="board" class="board" aria-label="오목 보드"></div>
         <p id="gameMessage" class="message" role="status" aria-live="polite"></p>
       </section>
-    </main>
+      </main>
+
+      <aside class="ad-rail" aria-label="오른쪽 광고">
+        <div id="rightAdSlot" class="ad-slot">
+          <span class="ad-label">ADVERTISEMENT</span>
+          <strong>160 × 600</strong>
+        </div>
+      </aside>
+    </div>
     <script src="script.js"></script>
   </body>
 </html>

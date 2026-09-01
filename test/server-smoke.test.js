@@ -37,3 +37,14 @@ test('provides nickname, room creation, and code joining controls', async () => 
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
 });
+
+test('provides two desktop Kakao ad placeholders', async () => {
+  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../style.css', import.meta.url), 'utf8');
+
+  assert.match(html, /id=["']leftAdSlot["'][^>]*class=["'][^"']*ad-slot/);
+  assert.match(html, /id=["']rightAdSlot["'][^>]*class=["'][^"']*ad-slot/);
+  assert.match(css, /\.page-shell\s*\{[\s\S]*grid-template-columns:\s*160px\s+minmax\(0,\s*900px\)\s+160px/);
+  assert.match(css, /\.ad-slot\s*\{[\s\S]*width:\s*160px[\s\S]*height:\s*600px/);
+  assert.match(css, /@media\s*\(max-width:\s*1299px\)[\s\S]*\.ad-rail\s*\{[\s\S]*display:\s*none/);
+});
