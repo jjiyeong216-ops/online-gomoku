@@ -50,9 +50,38 @@ export function attachSocketServer(server, { roomManager = new RoomManager() } =
     }
   }
 
-  webSocketServer.on('connection', (socket) => {
+  webSocketServer.on('connection', (socket, request) => {
     const socketId = randomUUID();
     sockets.set(socketId, socket);
+
+    const connectionUrl = new URL(request.url, 'http://localhost');
+    const mode = connectionUrl.searchParams.get('mode');
+    if (mode === 'create' || mode === 'join') {
+      setTimeout(() => {
+        try {
+          if (mode === 'create') {
+            roomManager.createRoom({
+              socketId,
+              nickname: connectionUrl.searchParams.get('nickname'),
+              rule: connectionUrl.searchParams.get('rule'),
+            });
+          } else {
+            roomManager.joinRoom({
+              socketId,
+              nickname: connectionUrl.searchParams.get('nickname'),
+              code: connectionUrl.searchParams.get('code'),
+            });
+          }
+          broadcastState(socketId);
+        } catch (error) {
+          send(socket, {
+            type: 'request_rejected',
+            code: error.message,
+            message: ERROR_MESSAGES[error.message] ?? '요청을 처리할 수 없습니다.',
+          });
+        }
+      }, 0);
+    }
 
     socket.on('message', (data) => {
       try {

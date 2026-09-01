@@ -81,3 +81,17 @@ test('broadcasts a server-authoritative timeout result', async (t) => {
   assert.equal(hostFinished.state.finishReason, 'timeout');
   assert.equal(guestFinished.state.finishReason, 'timeout');
 });
+
+test('supports the Cloudflare-compatible query connection flow locally', async (t) => {
+  const server = createAppServer();
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  t.after(() => server.close());
+  const { port } = server.address();
+  const host = await connect(`ws://127.0.0.1:${port}/ws?mode=create&nickname=%EB%B0%A9%EC%9E%A5&rule=freestyle`);
+  t.after(() => host.close());
+
+  const created = await nextMessage(host);
+  assert.equal(created.type, 'state_changed');
+  assert.equal(created.state.status, 'waiting');
+});

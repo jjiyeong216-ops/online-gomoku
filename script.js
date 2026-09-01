@@ -27,14 +27,20 @@ function createBoard() {
   elements.board.appendChild(fragment);
 }
 
-function connect() {
-  socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}`);
+function connectToRoom({ mode, nickname, rule, code }) {
+  const params = new URLSearchParams({ mode, nickname });
+  if (rule) params.set('rule', rule);
+  if (code) params.set('code', code);
+  socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws?${params}`);
+  elements.connection.textContent = '방 연결 중';
+  setLobbyEnabled(false);
   socket.addEventListener('open', () => {
-    elements.connection.textContent = '서버 연결됨'; elements.connection.classList.add('connected'); setLobbyEnabled(true);
+    elements.connection.textContent = '서버 연결됨'; elements.connection.classList.add('connected');
   });
   socket.addEventListener('message', ({ data }) => handleMessage(JSON.parse(data)));
   socket.addEventListener('close', () => {
-    elements.connection.textContent = '서버 연결 끊김'; elements.connection.classList.remove('connected'); setLobbyEnabled(false);
+    elements.connection.textContent = '서버 연결 끊김'; elements.connection.classList.remove('connected');
+    if (!gameState) setLobbyEnabled(true);
     if (gameState) showGameMessage('서버 연결이 끊겨 대국이 종료되었습니다.');
   });
 }
@@ -107,17 +113,19 @@ function renderTimer() {
 }
 
 elements.create.addEventListener('click', () => {
-  const nickname = getNickname(); if (nickname) send({ type: 'create_room', nickname, rule: elements.rule.value });
+  const nickname = getNickname();
+  if (nickname) connectToRoom({ mode: 'create', nickname, rule: elements.rule.value });
 });
 elements.join.addEventListener('click', () => {
   const nickname = getNickname(); const code = elements.codeInput.value.trim().toUpperCase();
   if (!nickname) return;
   if (!/^[A-Z0-9]{6}$/.test(code)) { showLobbyMessage('6자리 참여 코드를 입력해주세요.'); return; }
-  send({ type: 'join_room', nickname, code });
+  connectToRoom({ mode: 'join', nickname, code });
 });
 elements.codeInput.addEventListener('input', () => { elements.codeInput.value = elements.codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6); });
 elements.copy.addEventListener('click', async () => { await navigator.clipboard.writeText(gameState.code); showGameMessage('참여 코드를 복사했습니다.'); });
 elements.leave.addEventListener('click', () => location.reload());
 
 setInterval(renderTimer, 250);
-setLobbyEnabled(false); createBoard(); connect();
+elements.connection.textContent = '대국 준비됨';
+setLobbyEnabled(true); createBoard();
