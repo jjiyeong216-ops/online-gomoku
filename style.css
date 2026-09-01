@@ -127,6 +127,23 @@ button:disabled { cursor: not-allowed; }
   font-weight: 800;
 }
 
+.timer-display {
+  min-width: 64px;
+  margin-left: auto;
+  color: #2d1f10;
+  font-size: 1.25rem;
+  text-align: right;
+}
+
+.timer-display.urgent {
+  color: #c52f24;
+  animation: timer-pulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes timer-pulse {
+  to { transform: scale(1.08); }
+}
+
 .room-bar,
 .players {
   display: flex;

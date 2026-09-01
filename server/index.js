@@ -14,7 +14,7 @@ const staticFiles = new Map([
   ['/script.js', ['script.js', 'text/javascript; charset=utf-8']],
 ]);
 
-export function createAppServer() {
+export function createAppServer(socketOptions = {}) {
   const server = createServer((request, response) => {
     const pathname = new URL(request.url, 'http://localhost').pathname;
     const staticFile = staticFiles.get(pathname);
@@ -29,7 +29,7 @@ export function createAppServer() {
     response.writeHead(200, { 'content-type': contentType });
     createReadStream(join(projectRoot, fileName)).pipe(response);
   });
-  attachSocketServer(server);
+  attachSocketServer(server, socketOptions);
   return server;
 }
 

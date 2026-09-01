@@ -9,6 +9,7 @@ const elements = {
   connection: byId('connectionDisplay'), codeDisplay: byId('roomCodeDisplay'), copy: byId('copyCodeButton'),
   leave: byId('leaveButton'), ruleDisplay: byId('ruleDisplay'), turn: byId('turnDisplay'),
   blackPlayer: byId('blackPlayer'), whitePlayer: byId('whitePlayer'), board: byId('board'),
+  timer: byId('timerDisplay'),
 };
 let socket;
 let gameState = null;
@@ -71,11 +72,14 @@ function renderGame() {
   if (gameState.status === 'waiting') elements.turn.textContent = '코드를 공유하고 상대방을 기다려주세요';
   else if (gameState.status === 'finished') {
     const winner = gameState.players.find((player) => player.color === gameState.winner);
-    elements.turn.textContent = winner ? `${winner.nickname} 승리!` : '무승부';
+    elements.turn.textContent = winner
+      ? `${winner.nickname} ${gameState.finishReason === 'timeout' ? '시간승' : '승리'}!`
+      : '무승부';
   } else {
     const current = gameState.players.find((player) => player.color === gameState.currentPlayer);
     elements.turn.textContent = gameState.currentPlayer === me.color ? `내 차례 (${me.color === BLACK ? '흑' : '백'})` : `${current?.nickname} 차례`;
   }
+  renderTimer();
   elements.board.querySelectorAll('.cell').forEach((cell) => {
     const row = Number(cell.dataset.row); const col = Number(cell.dataset.col); const value = gameState.board[row][col];
     cell.classList.toggle('black', value === BLACK); cell.classList.toggle('white', value === WHITE);
@@ -91,6 +95,17 @@ function setLobbyEnabled(enabled) { elements.create.disabled = !enabled; element
 function showLobbyMessage(message) { elements.lobbyMessage.textContent = message; }
 function showGameMessage(message) { elements.gameMessage.textContent = message; }
 
+function renderTimer() {
+  if (gameState?.status !== 'playing' || !gameState.turnDeadline) {
+    elements.timer.textContent = '--';
+    elements.timer.classList.remove('urgent');
+    return;
+  }
+  const seconds = Math.max(0, Math.ceil((gameState.turnDeadline - Date.now()) / 1000));
+  elements.timer.textContent = `${seconds}초`;
+  elements.timer.classList.toggle('urgent', seconds <= 5);
+}
+
 elements.create.addEventListener('click', () => {
   const nickname = getNickname(); if (nickname) send({ type: 'create_room', nickname, rule: elements.rule.value });
 });
@@ -104,4 +119,5 @@ elements.codeInput.addEventListener('input', () => { elements.codeInput.value = 
 elements.copy.addEventListener('click', async () => { await navigator.clipboard.writeText(gameState.code); showGameMessage('참여 코드를 복사했습니다.'); });
 elements.leave.addEventListener('click', () => location.reload());
 
+setInterval(renderTimer, 250);
 setLobbyEnabled(false); createBoard(); connect();

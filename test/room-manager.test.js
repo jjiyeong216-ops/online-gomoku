@@ -8,6 +8,10 @@ function manager(random = () => 0) {
   return new RoomManager({ codeGenerator: () => 'ABC123', random });
 }
 
+function timedManager(now) {
+  return new RoomManager({ codeGenerator: () => 'ABC123', random: () => 0, now: () => now.value });
+}
+
 test('creates a waiting room with a normalized host', () => {
   const rooms = manager();
   const state = rooms.createRoom({ socketId: 'host', nickname: '  방장  ', rule: 'freestyle' });
@@ -75,4 +79,28 @@ test('deletes the room immediately when either player disconnects', () => {
   assert.equal(closed.code, 'ABC123');
   assert.equal(closed.remainingSocketId, 'host');
   assert.equal(rooms.hasRoom('ABC123'), false);
+});
+
+test('starts and resets a 30 second turn deadline', () => {
+  const now = { value: 1_000 };
+  const rooms = timedManager(now);
+  rooms.createRoom({ socketId: 'host', nickname: '방장', rule: 'freestyle' });
+  let state = rooms.joinRoom({ socketId: 'guest', nickname: '손님', code: 'ABC123' });
+  assert.equal(state.turnDeadline, 31_000);
+  now.value = 8_000;
+  state = rooms.placeStone({ socketId: 'host', row: 7, col: 7 });
+  assert.equal(state.turnDeadline, 38_000);
+});
+
+test('ends the game with a loss when the current player uses 30 seconds', () => {
+  const now = { value: 1_000 };
+  const rooms = timedManager(now);
+  rooms.createRoom({ socketId: 'host', nickname: '방장', rule: 'freestyle' });
+  rooms.joinRoom({ socketId: 'guest', nickname: '손님', code: 'ABC123' });
+  now.value = 31_000;
+  const state = rooms.timeoutRoom('ABC123');
+  assert.equal(state.status, 'finished');
+  assert.equal(state.winner, WHITE);
+  assert.equal(state.finishReason, 'timeout');
+  assert.equal(state.turnDeadline, null);
 });

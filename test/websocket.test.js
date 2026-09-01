@@ -4,12 +4,13 @@ import test from 'node:test';
 import WebSocket from 'ws';
 
 import { createAppServer } from '../server/index.js';
+import { RoomManager } from '../server/room-manager.js';
 
 function nextMessage(socket) {
-  return new Promise((resolve, reject) => {
+  return Promise.race([new Promise((resolve, reject) => {
     socket.once('message', (data) => resolve(JSON.parse(data.toString())));
     socket.once('error', reject);
-  });
+  }), new Promise((_, reject) => setTimeout(() => reject(new Error('message timeout')), 750))]);
 }
 
 async function connect(url) {
@@ -55,4 +56,28 @@ test('two clients create and join the same online room', async (t) => {
   black.close();
   const closed = await closedMessage;
   assert.equal(closed.type, 'room_closed');
+});
+
+test('broadcasts a server-authoritative timeout result', async (t) => {
+  const roomManager = new RoomManager({ turnDurationMs: 40, random: () => 0 });
+  const server = createAppServer({ roomManager });
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  t.after(() => server.close());
+  const { port } = server.address();
+  const host = await connect(`ws://127.0.0.1:${port}`);
+  const guest = await connect(`ws://127.0.0.1:${port}`);
+  t.after(() => host.close());
+  t.after(() => guest.close());
+
+  host.send(JSON.stringify({ type: 'create_room', nickname: '방장', rule: 'freestyle' }));
+  const created = await nextMessage(host);
+  const hostPlaying = nextMessage(host);
+  guest.send(JSON.stringify({ type: 'join_room', nickname: '손님', code: created.state.code }));
+  await Promise.all([hostPlaying, nextMessage(guest)]);
+  const [hostFinished, guestFinished] = await Promise.all([nextMessage(host), nextMessage(guest)]);
+
+  assert.equal(hostFinished.state.status, 'finished');
+  assert.equal(hostFinished.state.finishReason, 'timeout');
+  assert.equal(guestFinished.state.finishReason, 'timeout');
 });

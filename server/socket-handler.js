@@ -16,22 +16,37 @@ const ERROR_MESSAGES = {
   FORBIDDEN_OVERLINE: '장목 금수입니다.',
   'FORBIDDEN_DOUBLE-FOUR': '사사 금수입니다.',
   'FORBIDDEN_DOUBLE-THREE': '삼삼 금수입니다.',
+  TIME_EXPIRED: '착수 시간이 끝났습니다.',
 };
 
 export function attachSocketServer(server, { roomManager = new RoomManager() } = {}) {
   const webSocketServer = new WebSocketServer({ server });
   const sockets = new Map();
+  const roomTimers = new Map();
 
   function send(socket, message) {
     if (socket?.readyState === socket.OPEN) socket.send(JSON.stringify(message));
   }
 
   function broadcastState(socketId) {
+    const { state } = roomManager.stateForSocket(socketId);
     for (const participantId of roomManager.socketIdsForSocket(socketId)) {
       send(sockets.get(participantId), {
         type: 'state_changed',
         ...roomManager.stateForSocket(participantId),
       });
+    }
+    clearTimeout(roomTimers.get(state.code));
+    roomTimers.delete(state.code);
+    if (state.status === 'playing' && state.turnDeadline) {
+      const timer = setTimeout(() => {
+        if (!roomManager.hasRoom(state.code)) return;
+        roomManager.timeoutRoom(state.code);
+        const participantId = roomManager.socketIdsForCode(state.code)[0];
+        if (participantId) broadcastState(participantId);
+      }, Math.max(0, state.turnDeadline - Date.now()));
+      timer.unref();
+      roomTimers.set(state.code, timer);
     }
   }
 
@@ -67,6 +82,10 @@ export function attachSocketServer(server, { roomManager = new RoomManager() } =
     socket.on('close', () => {
       sockets.delete(socketId);
       const closed = roomManager.disconnect(socketId);
+      if (closed) {
+        clearTimeout(roomTimers.get(closed.code));
+        roomTimers.delete(closed.code);
+      }
       if (closed?.remainingSocketId) {
         send(sockets.get(closed.remainingSocketId), {
           type: 'room_closed',

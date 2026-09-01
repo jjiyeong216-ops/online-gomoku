@@ -45,7 +45,10 @@
           <div id="blackPlayer" class="player-card"><span class="stone-sample black"></span><span>흑 · 배정 대기</span></div>
           <div id="whitePlayer" class="player-card"><span class="stone-sample white"></span><span>백 · 배정 대기</span></div>
         </div>
-        <div class="status-bar"><span class="turn-label">대국 상태</span><strong id="turnDisplay" class="turn-display">상대방을 기다리는 중입니다</strong></div>
+        <div class="status-bar">
+          <div><span class="turn-label">대국 상태</span> <strong id="turnDisplay" class="turn-display">상대방을 기다리는 중입니다</strong></div>
+          <strong id="timerDisplay" class="timer-display">30초</strong>
+        </div>
         <div id="board" class="board" aria-label="오목 보드"></div>
         <p id="gameMessage" class="message" role="status" aria-live="polite"></p>
       </section>

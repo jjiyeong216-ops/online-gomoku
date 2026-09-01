@@ -33,7 +33,7 @@ test('draws stones on line intersections instead of inside boxed cells', async (
 
 test('provides nickname, room creation, and code joining controls', async () => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
-  for (const id of ['nicknameInput', 'ruleSelect', 'createRoomButton', 'roomCodeInput', 'joinRoomButton', 'roomCodeDisplay']) {
+  for (const id of ['nicknameInput', 'ruleSelect', 'createRoomButton', 'roomCodeInput', 'joinRoomButton', 'roomCodeDisplay', 'timerDisplay']) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
 });
