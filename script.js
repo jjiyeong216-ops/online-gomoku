@@ -1,3 +1,5 @@
+import { getGameResult } from './game-result.js';
+
 const BOARD_SIZE = 15;
 const BLACK = 1;
 const WHITE = 2;
@@ -9,11 +11,14 @@ const elements = {
   connection: byId('connectionDisplay'), codeDisplay: byId('roomCodeDisplay'), copy: byId('copyCodeButton'),
   leave: byId('leaveButton'), ruleDisplay: byId('ruleDisplay'), turn: byId('turnDisplay'),
   blackPlayer: byId('blackPlayer'), whitePlayer: byId('whitePlayer'), board: byId('board'),
-  timer: byId('timerDisplay'),
+  timer: byId('timerDisplay'), resultModal: byId('resultModal'), resultSymbol: byId('resultSymbol'),
+  resultTitle: byId('resultTitle'), resultDescription: byId('resultDescription'),
+  returnToLobby: byId('returnToLobbyButton'),
 };
 let socket;
 let gameState = null;
 let me = null;
+let resultPresented = false;
 
 function createBoard() {
   const fragment = document.createDocumentFragment();
@@ -92,6 +97,18 @@ function renderGame() {
     cell.classList.toggle('last-move', gameState.lastMove?.row === row && gameState.lastMove?.col === col);
     cell.disabled = gameState.status !== 'playing' || gameState.currentPlayer !== me.color || value !== 0;
   });
+  if (gameState.status === 'finished' && !resultPresented) showResultModal();
+}
+
+function showResultModal() {
+  resultPresented = true;
+  const result = getGameResult(gameState, me.color);
+  elements.resultModal.classList.add(result.tone);
+  elements.resultSymbol.textContent = result.symbol;
+  elements.resultTitle.textContent = result.title;
+  elements.resultDescription.textContent = result.description;
+  elements.resultModal.hidden = false;
+  elements.returnToLobby.focus();
 }
 
 function placeStone(row, col) {
@@ -125,6 +142,7 @@ elements.join.addEventListener('click', () => {
 elements.codeInput.addEventListener('input', () => { elements.codeInput.value = elements.codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6); });
 elements.copy.addEventListener('click', async () => { await navigator.clipboard.writeText(gameState.code); showGameMessage('참여 코드를 복사했습니다.'); });
 elements.leave.addEventListener('click', () => location.reload());
+elements.returnToLobby.addEventListener('click', () => location.reload());
 
 setInterval(renderTimer, 250);
 elements.connection.textContent = '대국 준비됨';

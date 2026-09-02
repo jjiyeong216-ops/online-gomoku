@@ -356,6 +356,94 @@ h1 {
   box-shadow: inset -5px -5px 12px rgba(0, 0, 0, 0.08);
 }
 
+.result-modal {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(28, 18, 8, 0.72);
+  backdrop-filter: blur(5px);
+}
+
+.result-card {
+  width: min(100%, 390px);
+  padding: 34px 30px 30px;
+  border: 2px solid rgba(92, 55, 20, 0.55);
+  border-radius: 20px;
+  background: #f8edd7;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+  text-align: center;
+  animation: result-arrive 180ms ease-out both;
+}
+
+.result-symbol {
+  display: grid;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 18px;
+  place-items: center;
+  border-radius: 50%;
+  background: #2d1f10;
+  color: #f8edd7;
+  font-family: Georgia, serif;
+  font-size: 3.2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.result-modal.loss .result-symbol {
+  background: #914331;
+}
+
+.result-label {
+  margin: 0 0 7px;
+  color: rgba(45, 31, 16, 0.58);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+}
+
+.result-card h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 7vw, 2.4rem);
+}
+
+.result-description {
+  margin: 12px 0 24px;
+  color: rgba(45, 31, 16, 0.72);
+  line-height: 1.55;
+}
+
+.result-button {
+  width: 100%;
+  border: 0;
+  border-radius: 11px;
+  background: #2d1f10;
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  padding: 13px 18px;
+}
+
+.result-button:focus-visible {
+  outline: 3px solid #d99f45;
+  outline-offset: 3px;
+}
+
+@keyframes result-arrive {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-card,
+  .timer-display.urgent {
+    animation: none;
+  }
+}
+
 @media (max-width: 560px) {
   .app {
     padding: 16px;

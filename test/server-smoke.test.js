@@ -38,6 +38,32 @@ test('provides nickname, room creation, and code joining controls', async () => 
   }
 });
 
+test('provides an accessible game result modal', async () => {
+  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+
+  assert.match(html, /id=["']resultModal["'][^>]*role=["']dialog["'][^>]*aria-modal=["']true["']/);
+  assert.match(html, /aria-labelledby=["']resultTitle["']/);
+  assert.match(html, /aria-describedby=["']resultDescription["']/);
+  for (const id of ['resultSymbol', 'resultTitle', 'resultDescription', 'returnToLobbyButton']) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
+});
+
+test('shows a finished result once and returns to the lobby', async () => {
+  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  const script = await readFile(new URL('../script.js', import.meta.url), 'utf8');
+  const build = await readFile(new URL('../scripts/build.mjs', import.meta.url), 'utf8');
+
+  assert.match(html, /script[^>]*type=["']module["'][^>]*src=["']script\.js["']/);
+  assert.match(script, /import\s*\{\s*getGameResult\s*\}\s*from\s*["']\.\/game-result\.js["']/);
+  assert.match(script, /resultPresented/);
+  assert.match(script, /gameState\.status\s*===\s*["']finished["'][\s\S]*showResultModal/);
+  assert.match(script, /elements\.resultModal\.hidden\s*=\s*false/);
+  assert.match(script, /elements\.returnToLobby\.focus\(\)/);
+  assert.match(script, /elements\.returnToLobby\.addEventListener\(["']click["'][\s\S]*location\.reload\(\)/);
+  assert.match(build, /game-result\.js/);
+});
+
 test('provides two desktop Kakao ad placeholders', async () => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   const css = await readFile(new URL('../style.css', import.meta.url), 'utf8');
